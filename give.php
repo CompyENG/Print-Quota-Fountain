@@ -6,7 +6,7 @@
 <label for="amount" style="width:200px;float:left">Amount donated:<span style="float:right">$</span></label><input type="text" id="amount" name="amount" value="0.00"><br>
 <input type="submit"></form>
 <p>Directions:
-<ol><li>Go to <a href="http://labprinters.valpo.edu:9191">the papercut interface</a> and login.</li>
+<ol><li>Go to <a href="<?=$pcServer?>">the papercut interface</a> and login.</li>
 <li>Click on "Transfers" on the left.</li>
 <li>Send however much you want/can to ______. Feel free to leave a comment, too!</li>
 <li>Come back to this page, put in your username and the amount you donated.</li></ol>

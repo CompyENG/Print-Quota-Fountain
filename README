@@ -2,4 +2,8 @@ Print Quota Fountain
 
 If you're reading this, please note that this is a work in progress. I want to keep this open-source, but it's still in very active development, and the source here might be out-of-sync with my working copy.
 
-I'm aware that the table layout is missing right now.  I'll work on getting that up later.
+MySQL table layout in tables.sql, but is subject to change as I move things around.
+
+I've recently abstracted the papercut functions out of the actual code and into their own class.  This means I'll soon be able to essentially get rid of the frontend code on GitHub.  The goal will be for this project to house the backend code to communicate with different print systems in order to transfer quota.  The main use of this will be for a print fountain, but the code could be useful elsewhere, too.  Check out papercut.class.php for the required functions, and please send a pull request if you can write the class for a different print system!
+
+I'll probably leave in a demo print fountain frontend for basic "get it up and running" purposes, but most of the frontend will be left up to individual implementations.

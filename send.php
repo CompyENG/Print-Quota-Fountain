@@ -19,6 +19,20 @@ if($_POST['amount'] < 0) {
     die();
 }
 
+// Make sure they aren't requesting more than is in the fountain
+$sql = "SELECT SUM(amount) AS s FROM papercutDonations";
+$sqlr = mysql_query($sql);
+$sr = mysql_fetch_array($sqlr);
+$donated = $sr['s'];
+
+$sql2 = "SELECT SUM(amount) AS s FROM papercutRequests";
+$sqlr2 = mysql_query($sql2);
+$sr2 = mysql_fetch_array($sqlr2);
+$requested = $sr2['s'];
+if(($donated-$requested) > $_POST['amount']) {
+    echo "<p>Error: Sorry, there are insufficient funds in the fountain to fulfill that request.</p>";
+}
+
 if($_POST['username'] == "") {
     die("<p>Error: Looks like username is blank! Please put in a username!</p>");
 }
@@ -26,88 +40,20 @@ if($_POST['username'] == "") {
 $amount = sprintf("$%01.2f", $_POST['amount']);
 
 // Should be all good... send it off!
-include("http.php");
-$http=new http_class;
-$http->debug=0;
-$http->html_debug=1;
-$http->follow_redirect=1;
+include("papercut.class.php");
+$pc = new PaperCut($pcServer);
+$pc->setComment("Transfer from Print Fountain");
+if(!$pc->login($pcUsername, $pcPassword)) {
+	die("<p>Error: Could not login to PaperCut.  Contact <a href='mailto:bobby.graese@valpo.edu'>Bobby</a> to fix this.</p>");
+}
 
-$url=$pcServer."/app";
-$error=$http->GetRequestArguments($url,$arguments);
-
-$arguments["RequestMethod"]="POST";
-$arguments["PostValues"]=array(
-    "inputUsername"=>$pcUsername,
-    "inputPassword"=>$pcPassword,
-    "service"=>'direct/0/Home/$Form',
-    '$PropertySelection'=>"en",
-    '$Submit'=>"Log in",
-    'sp'=>"S0",
-    "Form0"=>'$Hidden,inputUsername,inputPassword,$PropertySelection,$Submit',
-    '$Hidden'=>"F"
-);
-
-$error=$http->Open($arguments);
-$error=$http->SendRequest($arguments);
-$error=$http->ReadWholeReplyBody($body1);
-$http->Close();
-
-// Find the link to the transfer page
-// Looks like: <a href="/app;jsessionid=1343y1z9dc0j7?service=page/UserTransfer" id="linkUserTransfer">
-//echo $body1;
-preg_match("/\\/app;jsessionid=(.*?)\\?service=/", $body1, $matches);
-$jsessionid = $matches[1];
-
-$url = $pcServer."/app;jsessionid=".$jsessionid."?service=page/UserTransfer";
-$arguments = array(); // Clear arguments array
-$error = $http->GetRequestArguments($url, $arguments);
-$error = $http->Open($arguments);
-$error=$http->SendRequest($arguments);
-$error=$http->ReadWholeReplyBody($body2);
-$http->Close();
-
-preg_match('/name="\\$Hidden" value="(.*?)"\\/>/', $body2, $matches2);
-$hiddenValue = $matches2[1];
-
-// Now, send it!
-$url = $pcServer."/app;jsessionid=".$jsessionid;
-$arguments = array(); // Clear arguments array
-$error = $http->GetRequestArguments($url, $arguments);
-$arguments["RequestMethod"]="POST";
-$arguments["PostValues"]=array(
-    "service"=>"direct/1/UserTransfer/transferForm",
-	"sp"=>"S0",
-	"Form0"=>'$Hidden,inputAmount,inputToUsername,inputComment,$Submit',
-	'$Hidden'=>$hiddenValue,
-	'inputAmount'=>$amount,
-	'inputToUsername'=>$_POST['username'],
-	'inputComment'=>"Transfer from Print Fountain",
-	'$Submit'=>"Transfer"	
-);
-$error = $http->Open($arguments);
-$error=$http->SendRequest($arguments);
-$error=$http->ReadWholeReplyBody($body1);
-$http->Close();
-
-// Let's check!
-if(!strpos($body1, "The user ".$_POST['username']." can not be found.")) {
-    if(strpos($body1, "The transfer has been successfully applied.") > 0) {
-        $sql = "INSERT INTO papercutRequests (time,username,amount) VALUES (NOW(), '".mysql_real_escape_string($_POST['username'])."', ".str_replace("$", "", $amount).")";
-        //echo $sql."<br>";
-        $sqlr = mysql_query($sql);
-        echo "<p>Quota sent to ".$_POST['username']."!</p>";
-    } else {
-        echo "<p>Error: Some error occured in the transfer.  Please try again later.</p>";
-    }
+if($pc->transfer($amount, $_POST['username'])) {
+	$sql = "INSERT INTO papercutRequests (time,username,amount) VALUES (NOW(), '".mysql_real_escape_string($_POST['username'])."', ".str_replace("$", "", $amount).")";
+    mysql_query($sql);
+	echo "<p>Quota sent to ".$_POST['username']."!</p>";
 } else {
-    echo "<p>Error: There doesn't seem to be a user with username \"".$_POST['username']."\". Please try again.</p>";
+	echo "<p>An error occured in the transfer: <strong>".$pc->getError()."</strong>.  Please try again later.</p>";
 }
 
 // Do a logout :/
-$url = $pcServer.'/app;jsessionid='.$jsessionid.'?service=direct/1/UserTransactions/$UserBorder.logoutLink';
-$arguments = array();
-$error = $http->GetRequestArguments($url, $arguments);
-$error = $http->Open($arguments);
-$error = $http->SendRequest($arguments);
-$error = $http->ReadWholeReplyBody($body3);
-$http->Close();
+$pc->logout();

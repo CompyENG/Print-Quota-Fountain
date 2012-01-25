@@ -6,9 +6,9 @@
 <label for="amount" style="width:200px;float:left">Amount donated:<span style="float:right">$</span></label><input type="text" id="amount" name="amount" value="0.00"><br>
 <input type="submit"></form>
 <p>Directions:
-<ol><li>Go to <a href="<?=$pcServer?>">the papercut interface</a> and login.</li>
+<ol><li>Go to <a href="http://labprinters.valpo.edu:9191">the papercut interface</a> and login.</li>
 <li>Click on "Transfers" on the left.</li>
-<li>Send however much you want/can to rgraese. Feel free to leave a comment, too!</li>
+<li>Send however much you want/can to ______. Feel free to leave a comment, too!</li>
 <li>Come back to this page, put in your username and the amount you donated.</li></ol>
 That's it! Please note that if you don't come back and fill out this form, you'll simply be giving me print quota. Sorry :/ If you have any questions, there's a link to e-mail me below.
 <p>Available quota in the fountain: <?php
@@ -23,5 +23,6 @@ $sqlr2 = mysql_query($sql2);
 $sr2 = mysql_fetch_array($sqlr2);
 $requested = $sr2['s'];
 
-echo "$".($donated-$requested);
+printf("$%01.2f", ($donated-$requested));
 ?></p>
+<p>Disclaimer: This money gets donated to _______'s print account.  I needed an account to collect money, and mine was convenient to use.  However, I do keep track of how much money is donated, and I won't use donated money for my personal use (unless I decide I need to use the print fountain a bit, in which case I'll go through the normal request process).</p>

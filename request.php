@@ -19,6 +19,6 @@ $sqlr2 = mysql_query($sql2);
 $sr2 = mysql_fetch_array($sqlr2);
 $requested = $sr2['s'];
 
-echo "$".($donated-$requested);
+printf("$%01.2f", ($donated-$requested));
 ?>.  If you would like to check how much you have in your account, <a href="<?=$pcServer?>">click here</a>.</p>
-<p>Please note that to avoid abuse of this system, there are some restrictions in place.  First, you can only requests $1 at a time.  Sorry if this is an issue, but it's to avoid people stealing all the quota from the fountain.  Second, you can only request funds from the fountain once every 24 hours.  Again, it's just to avoid abuse.</p>
+<p>Please note that to avoid abuse of this system, there are some restrictions in place.  First, you can only requests $1 at a time.  Sorry if this is an issue, but it's to avoid people stealing all the quota from the fountain.  Second, you can only request funds from the fountain once every 24 hours.  Again, it's just to avoid abuse.  Hopefully this won't be an issue, but it's easy to just put the safeguards in place from the start.</p>
